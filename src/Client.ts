@@ -148,7 +148,7 @@ export class Client {
      * @example const client = await Client.create({ token: "token" });
      */
     public static create(options: Omit<ClientOptions, 'onReady'>): Promise<Client> {
-        return new Promise(onReady => new Client({ onReady, ...options }));
+        return new Promise((onReady, onFail) => new Client({ ...options, onReady, onFail }));
     }
 
     /**
@@ -244,31 +244,35 @@ export class Client {
      */
     private async _init(options: ClientOptions) {
         if (!options.token) throw new SpotifyAPIError('No token was provided in [ClientOptions]');
-        
-        if (typeof options.token == "string") {
-            if (options.refreshToken) console.trace("[SpotifyClientWarn]: You have provided a token and used `refreshToken` option. Try to provide clientID, clientSecret or user authenication details.");
-            this.token = options.token;
 
-            if (options.userAuthorizedToken) this.user = await new UserClient(this).patchInfo();
-        } else if ('token' in options.token) {
-            this.token = options.token.token;
-            this.refreshMeta = options.token;
+        try {
+            if (typeof options.token == "string") {
+                if (options.refreshToken) console.trace("[SpotifyClientWarn]: You have provided a token and used `refreshToken` option. Try to provide clientID, clientSecret or user authenication details.");
+                this.token = options.token;
 
-            if (options.userAuthorizedToken) this.user = await new UserClient(this).patchInfo();
-        } else if (('redirectURL' in options.token) || ('refreshToken' in options.token)) {
-            const context = await this.auth.getUserToken(options.token as GetUserTokenOptions);
+                if (options.userAuthorizedToken) this.user = await new UserClient(this).patchInfo();
+            } else if ('token' in options.token) {
+                this.token = options.token.token;
+                this.refreshMeta = options.token;
 
-            this.refreshMeta = options.token;
-            if (context.refreshToken) this.refreshMeta.refreshToken = context.refreshToken;
-            
-            this.token = context.accessToken;
-            this.user = await new UserClient(this).patchInfo();
-        } else if ('clientID' in options.token) {
-            this.refreshMeta = options.token;
-            this.token = await this.auth.getApiToken(options.token.clientID, options.token.clientSecret);
-        } else throw new SpotifyAPIError('Improper [ClientOptions] provided!.');
+                if (options.userAuthorizedToken) this.user = await new UserClient(this).patchInfo();
+            } else if (('redirectURL' in options.token) || ('refreshToken' in options.token)) {
+                const context = await this.auth.getUserToken(options.token as GetUserTokenOptions);
 
-        options.onReady?.(this);
+                this.refreshMeta = options.token;
+                if (context.refreshToken) this.refreshMeta.refreshToken = context.refreshToken;
+
+                this.token = context.accessToken;
+                this.user = await new UserClient(this).patchInfo();
+            } else if ('clientID' in options.token) {
+                this.refreshMeta = options.token;
+                this.token = await this.auth.getApiToken(options.token.clientID, options.token.clientSecret);
+            } else throw new SpotifyAPIError('Improper [ClientOptions] provided!.');
+
+            options.onReady?.(this);
+        } catch (error) {
+            options.onFail?.(error);
+        }
     }
 
 }
