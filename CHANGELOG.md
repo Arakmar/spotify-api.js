@@ -4,6 +4,25 @@ Version history of spotify-api.js since v4.0.5.
 
 ---
 
+## v9.2.3
+
+- fix: spelling in reorderItems for uris parameter. [#158](https://github.com/spotify-api/spotify-api.js/issues/158)
+- fix: documentation fix. [#160](https://github.com/spotify-api/spotify-api.js/pull/160)
+
+**Released:** 31st July 2022<br/>
+**Status:** Recommended to use<br/>
+
+---
+
+## v9.2.2
+
+- fix: fix several playlist create/edit API by using request body.
+
+**Released:** 14th July 2022<br/>
+**Status:** Recommended to use<br/>
+
+---
+
 ## v9.2.1
 
 - fix(refreshToken): fix refresh token regeneration using only `refreshToken` field. [#83](https://github.com/spotify-api/spotify-api.js/issues/83#issuecomment-1140212527)
